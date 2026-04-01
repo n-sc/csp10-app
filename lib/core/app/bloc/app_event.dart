@@ -12,3 +12,8 @@ final class AppLoginRequested extends AppEvent {
 final class AppLogoutPressed extends AppEvent {
   const AppLogoutPressed();
 }
+
+final class AppSwitchTheme extends AppEvent {
+  final ThemeMode mode;
+  const AppSwitchTheme({required this.mode});
+}

@@ -47,12 +47,17 @@ class AppView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: _title,
-      theme: MyTheme.lightTheme,
-      darkTheme: MyTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      routerConfig: locator.get<GoRouter>(),
+    return BlocSelector<AppBloc, AppState, ThemeMode>(
+      selector: (state) => state.themeMode,
+      builder: (context, themeMode) {
+        return MaterialApp.router(
+          title: _title,
+          theme: MyTheme.lightTheme,
+          darkTheme: MyTheme.darkTheme,
+          themeMode: themeMode,
+          routerConfig: locator.get<GoRouter>(),
+        );
+      }
     );
   }
 }

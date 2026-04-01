@@ -4,6 +4,7 @@ import 'package:csp10_app/core/repositories/authentication_repository.dart';
 import 'package:csp10_app/core/models/user.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
@@ -14,6 +15,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         super(AppState(user: authenticationRepository.currentUser)) {
     on<AppLoginRequested>(_onAppLoginRequested);
     on<AppLogoutPressed>(_onLogoutPressed);
+    on<AppSwitchTheme>(_onAppSwitchTheme);
   }
 
   final AuthenticationRepository _authenticationRepository;
@@ -51,5 +53,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) {
     _authenticationRepository.logOut();
+  }
+
+  void _onAppSwitchTheme(
+    AppSwitchTheme event,
+    Emitter<AppState> emit,
+  ) {
+    emit(state.copyWith(themeMode: event.mode));
   }
 }

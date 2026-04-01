@@ -1,7 +1,9 @@
+import 'package:csp10_app/core/app/bloc/app_bloc.dart';
 import 'package:csp10_app/core/services/api/models/responses.dart';
 import 'package:csp10_app/core/services/service_locator.dart';
 import 'package:csp10_app/core/services/api/api.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -44,6 +46,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.watch<AppBloc>().state.themeMode;
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.of(context).platformBrightness == Brightness.dark);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -58,7 +65,17 @@ class _HomePageState extends State<HomePage> {
                 icon: _heart,
                 label: Text("Like"),
               ),
-              SizedBox(width: 10),
+              ElevatedButton.icon(
+                onPressed:() {
+                  if (isDark) {
+                    context.read<AppBloc>().add(AppSwitchTheme(mode: ThemeMode.light));
+                  } else {
+                    context.read<AppBloc>().add(AppSwitchTheme(mode: ThemeMode.dark));
+                  }
+                },
+                icon: isDark ? Icon(Icons.nights_stay) : Icon(Icons.wb_sunny),
+                label: isDark ? Text("Dark mode") : Text("Light mode"),
+              ),
             ],
           ),
           FutureBuilder(
