@@ -1,0 +1,5 @@
+{
+    "USE_FAKE_SESSION": false,
+    "API_URL": "https://<DOMAIN>/api/v1",
+    "KEYCLOAK_URL": "https://<DOMAIN>/"
+}

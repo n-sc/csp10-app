@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Android APK & iOS IPA",
+            "type": "shell",
+            "command": "flutter build apk --split-per-abi --dart-define-from-file=config.prod.json && flutter build ipa --dart-define-from-file=config.prod.json",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}
