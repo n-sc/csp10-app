@@ -26,7 +26,7 @@ class InputFormField extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(25),
-        color: Colors.amber,
+        color: Theme.of(context).colorScheme.surface,
       ),
       child: TextFormField(
         controller: inputController,

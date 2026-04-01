@@ -1,59 +1,86 @@
 import 'package:flutter/material.dart';
-import 'package:csp10_app/core/theme/colors.dart';
+
+class MyColors {
+  static const primary = Color(0xFF4F46E5);   // Indigo
+  static const secondary = Color(0xFF06B6D4); // Cyan
+
+  static const background = Color(0xFFF9FAFB);
+  static const surface = Color(0xFFFFFFFF);
+
+  static const black = Color(0xFF0F172A);
+  static const white = Color(0xFFFFFFFF);
+
+  // Dark theme
+  static const darkBackground = Color(0xFF020617);
+  static const darkSurface = Color(0xFF0F172A);
+}
 
 class MyTheme {
-  // Light Theme
+  // 🌞 Light Theme
   static final lightTheme = ThemeData(
-    colorSchemeSeed: MaterialColor(
-      MyColors.primary.toARGB32(),
-      <int, Color>{
-        50: MyColors.primary.withValues(alpha: 0.1),
-        100: MyColors.primary.withValues(alpha: 0.2),
-        200: MyColors.primary.withValues(alpha: 0.3),
-        300: MyColors.primary.withValues(alpha: 0.4),
-        400: MyColors.primary.withValues(alpha: 0.5),
-        500: MyColors.primary.withValues(alpha: 0.6),
-        600: MyColors.primary.withValues(alpha: 0.7),
-        700: MyColors.primary.withValues(alpha: 0.8),
-        800: MyColors.primary.withValues(alpha: 0.9),
-        900: MyColors.primary.withValues(alpha: 1.0),
-      },
+    useMaterial3: true,
+    colorScheme: const ColorScheme(
+      brightness: Brightness.light,
+      primary: MyColors.primary,
+      onPrimary: Colors.white,
+      secondary: MyColors.secondary,
+      onSecondary: Colors.white,
+      error: Colors.red,
+      onError: Colors.white,
+      surface: MyColors.surface,
+      onSurface: Colors.black87,
     ),
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-    scaffoldBackgroundColor: Colors.white,
-  );
-
-  // Dark Theme
-  // TODO: Add dark theme colors
-  static final darkTheme = ThemeData(
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-    colorSchemeSeed: MaterialColor(
-      MyColors.secondary.toARGB32(),
-      <int, Color>{
-        50: MyColors.secondary.withValues(alpha: 0.1),
-        100: MyColors.secondary.withValues(alpha: 0.2),
-        200: MyColors.secondary.withValues(alpha: 0.3),
-        300: MyColors.secondary.withValues(alpha: 0.4),
-        400: MyColors.secondary.withValues(alpha: 0.5),
-        500: MyColors.secondary.withValues(alpha: 0.6),
-        600: MyColors.secondary.withValues(alpha: 0.7),
-        700: MyColors.secondary.withValues(alpha: 0.8),
-        800: MyColors.secondary.withValues(alpha: 0.9),
-        900: MyColors.secondary.withValues(alpha: 1.0),
-      },
-    ),
-    scaffoldBackgroundColor: MyColors.black,
-    appBarTheme: AppBarTheme(
-      backgroundColor: MyColors.black,
+    scaffoldBackgroundColor: MyColors.background,
+    appBarTheme: const AppBarTheme(
       elevation: 0,
-      iconTheme: IconThemeData(
-        color: MyColors.primary,
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
+    ),
+    cardTheme: CardThemeData(
+      color: MyColors.surface,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
     ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: MyColors.black,
-      selectedItemColor: MyColors.primary,
-      unselectedItemColor: MyColors.secondary,
+    navigationBarTheme: const NavigationBarThemeData(
+      backgroundColor: MyColors.surface,
+      indicatorColor: MyColors.primary,
     ),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+  );
+
+  // 🌙 Dark Theme
+  static final darkTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: const ColorScheme(
+      brightness: Brightness.dark,
+      primary: MyColors.primary,
+      onPrimary: Colors.white,
+      secondary: MyColors.secondary,
+      onSecondary: Colors.black,
+      error: Colors.redAccent,
+      onError: Colors.black,
+      surface: MyColors.darkSurface,
+      onSurface: Colors.white70,
+    ),
+    scaffoldBackgroundColor: MyColors.darkBackground,
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.white,
+    ),
+    cardTheme: CardThemeData(
+      color: MyColors.darkSurface,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+    ),
+    navigationBarTheme: const NavigationBarThemeData(
+      backgroundColor: MyColors.darkSurface,
+      indicatorColor: MyColors.primary,
+    ),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
   );
 }

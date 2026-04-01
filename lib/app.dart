@@ -2,6 +2,7 @@ import 'package:csp10_app/core/app/bloc/app_bloc.dart';
 import 'package:csp10_app/core/repositories/authentication_repository.dart';
 import 'package:csp10_app/core/repositories/user_repository.dart';
 import 'package:csp10_app/core/services/service_locator.dart';
+import 'package:csp10_app/core/theme/theme.dart';
 import 'package:csp10_app/features/bear/bear_repository.dart';
 import 'package:csp10_app/features/quotes/quotes_repository.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,9 @@ class AppView extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: _title,
+      theme: MyTheme.lightTheme,
+      darkTheme: MyTheme.darkTheme,
+      themeMode: ThemeMode.system,
       routerConfig: locator.get<GoRouter>(),
     );
   }

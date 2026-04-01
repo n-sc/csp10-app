@@ -108,7 +108,6 @@ class _QuotesStackState extends State<QuotesStack> {
                           });
                         },
                         child: QuoteCard(
-                          color: state.quotes[index].color,
                           quote: state.quotes[index],
                         ),
                       ),
@@ -143,7 +142,6 @@ class _QuotesStackState extends State<QuotesStack> {
           });
         },
         child: QuoteCard(
-          color: quote.color,
           isExpanded: true,
           quote: quote,
         ),

@@ -49,7 +49,6 @@ class _BearPageState extends State<BearPage>
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: theme.colorScheme.primaryContainer,
         title: Text(
           'Bär @ CSP10',
           style: theme.textTheme.headlineLarge,

@@ -8,19 +8,25 @@ import 'package:go_router/go_router.dart';
 class QuoteCard extends StatelessWidget {
   const QuoteCard({
     super.key,
-    this.color,
     this.isExpanded = false,
     required this.quote,
   });
-  final Color? color;
   final bool isExpanded;
   final Quote quote;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
-      color: color ?? Colors.teal,
+      color: theme.colorScheme.surface,
       elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isExpanded? theme.colorScheme.primary : theme.colorScheme.surface,
+          width: 4,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.only(
           left: 30,
@@ -37,7 +43,7 @@ class QuoteCard extends StatelessWidget {
                 Icon(
                   Icons.format_quote,
                   size: 50,
-                  color: Colors.black,
+                  color: theme.colorScheme.onSurface,
                 ),
                 if (isExpanded)
                   Expanded(
@@ -74,7 +80,7 @@ class QuoteCard extends StatelessWidget {
                     },
                     icon: Icon(
                       Icons.delete,
-                      color: Colors.black,
+                      color: theme.colorScheme.onSurface,
                     ),
                   )
               ],
@@ -93,7 +99,7 @@ class QuoteCard extends StatelessWidget {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   height: 30,

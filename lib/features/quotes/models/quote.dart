@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Quote {
   final String author;
   final String city;
@@ -9,7 +7,6 @@ class Quote {
   final String location;
   final String quote;
   final String submitter;
-  Color? color;
 
   Quote({
     required this.author,
@@ -20,7 +17,6 @@ class Quote {
     required this.location,
     required this.quote,
     required this.submitter,
-    this.color,
   });
 
   factory Quote.fromJson(Map<String, dynamic> data) {
@@ -35,8 +31,6 @@ class Quote {
           'quote': String quote,
           'submitter': Map<String, dynamic> submitter,
         }) {
-      // parse optional values extra as they might not exist
-      final color = data['color'] as Color?;
 
       return Quote(
         author: author['username']! as String,
@@ -47,7 +41,6 @@ class Quote {
         location: location,
         quote: quote,
         submitter: submitter['username']! as String,
-        color: color ?? Color(0xffFEF0F1),
       );
     } else {
       throw const FormatException('Could not validate Quote data!');

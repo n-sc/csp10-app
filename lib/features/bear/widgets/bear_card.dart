@@ -22,7 +22,6 @@ class BearCard extends StatelessWidget {
     var theme = Theme.of(context);
     return GridTile(
       child: Card(
-        color: theme.colorScheme.primaryContainer,
         elevation: 1,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -55,8 +54,7 @@ class BearCard extends StatelessWidget {
                           children: <Widget>[
                             Text(
                               beartype.displayName,
-                              style: theme.textTheme.titleLarge!.copyWith(
-                                  color: theme.colorScheme.onPrimaryContainer),
+                              style: theme.textTheme.titleLarge,
                             ),
                             IconButton(
                               icon: Icon(Icons.info),
@@ -66,7 +64,6 @@ class BearCard extends StatelessWidget {
                                   return Container(
                                     height: 250,
                                     padding: EdgeInsets.all(10),
-                                    color: theme.colorScheme.primaryContainer,
                                     child: Center(
                                       child: Column(
                                         mainAxisAlignment:
@@ -75,6 +72,7 @@ class BearCard extends StatelessWidget {
                                         children: <Widget>[
                                           Text(
                                             'Information zum ${beartype.displayName}',
+                                            style: theme.textTheme.titleLarge,
                                           ),
                                           SizedBox(
                                             height: 10,

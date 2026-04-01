@@ -137,7 +137,7 @@ class _BearTransactionCardState extends State<BearTransactionCard> {
       subtitle: Text(
         "Genutzter Bär: ${widget.bearTransaction.bear}",
         style: TextStyle(
-          color: Theme.of(context).colorScheme.primary,
+          color: Theme.of(context).colorScheme.secondary,
         ),
         textAlign: TextAlign.end,
       ),

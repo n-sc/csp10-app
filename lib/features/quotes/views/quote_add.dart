@@ -73,7 +73,6 @@ class _QuoteAddScreenState extends State<QuoteAddScreen> {
           appBar: AppBar(
             title: Text("New quote"),
             elevation: 0,
-            backgroundColor: Colors.white,
             leading: CloseButton(
               onPressed: () => context.pop(),
             ),
@@ -119,7 +118,7 @@ class _QuoteAddScreenState extends State<QuoteAddScreen> {
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(25),
-                          color: Colors.grey,
+                          color: Theme.of(context).colorScheme.surface,
                         ),
                         child: TextFormField(
                           controller: _quoteController,
