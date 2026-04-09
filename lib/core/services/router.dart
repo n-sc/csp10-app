@@ -1,15 +1,18 @@
 import 'dart:async' show StreamSubscription;
 
 import 'package:csp10_app/core/app/bloc/app_bloc.dart';
-import 'package:csp10_app/core/services/service_locator.dart';
 import 'package:csp10_app/core/views/login_webview.dart' show LoginScreenWebview;
 import 'package:csp10_app/core/views/app_shell.dart';
+import 'package:csp10_app/features/quotes/bloc/quotes_bloc.dart';
 import 'package:csp10_app/features/quotes/views/quote_add.dart' show QuoteAddScreen;
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-GoRouter createRouter() {
-  AppBloc appBloc = locator.get<AppBloc>();
+GoRouter createRouter({
+  required AppBloc appBloc,
+  required QuotesBloc quotesBloc,
+}) {
   return GoRouter(
     initialLocation: '/login',
     routes: <RouteBase>[
@@ -39,11 +42,17 @@ GoRouter createRouter() {
             routes: <RouteBase>[
               GoRoute(
                 path: '/quotes',
-                builder: (context, state) => const QuotesPage(),
+                builder: (context, state) => BlocProvider.value(
+                  value: quotesBloc,
+                  child: const QuotesPage(),
+                ),
                 routes: <RouteBase>[
                   GoRoute(
                     path: 'add',
-                    builder: (context, state) => const QuoteAddScreen(),
+                    builder: (context, state) => BlocProvider.value(
+                      value: quotesBloc,
+                      child: const QuoteAddScreen(),
+                    ),
                   )
                 ],
               ),

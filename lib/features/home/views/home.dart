@@ -1,7 +1,5 @@
 import 'package:csp10_app/core/app/bloc/app_bloc.dart';
-import 'package:csp10_app/core/services/api/models/responses.dart';
-import 'package:csp10_app/core/services/service_locator.dart';
-import 'package:csp10_app/core/services/api/api.dart';
+import 'package:csp10_app/core/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -35,12 +33,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<String> _getProtectedData() async {
-    var response = await locator.get<API>().getProtected('/users');
-    switch (response) {
-      case ContentListAPIResponse _:
-        return 'SUCCESS';
-      default:
-        return 'FAIL';
+    try {
+      await context.read<UserRepository>().getUsers();
+      return 'SUCCESS';
+    } catch (_) {
+      return 'FAIL';
     }
   }
 

@@ -10,7 +10,7 @@ class BearRepository {
   // List<BearTransaction>? _transactions;
   // List<BearTransaction>? _ownTransactions;
 
-  BearRepository({API? apiClient}) : _apiClient = apiClient ?? API();
+  BearRepository({required API apiClient}) : _apiClient = apiClient;
 
   Future<List<BearType>> get beartypes async {
     return _beartypes ??= await _getBearTypes();
@@ -54,8 +54,10 @@ class BearRepository {
         var result =
             BearTransaction.fromJson(response.data as Map<String, dynamic>);
         return result;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in useBrownBear()');
+        throw ErrorAPIResponse('Unexpected response in useBrownBear()');
     }
   }
 
@@ -71,8 +73,10 @@ class BearRepository {
         // sort from newest to oldest
         result.sort((a, b) => b.startTimestamp.compareTo(a.startTimestamp));
         return result;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in _getBearTransactions()');
+        throw ErrorAPIResponse('Unexpected response in getAllTransactions()');
     }
   }
 
@@ -86,8 +90,10 @@ class BearRepository {
           result.add(BearTransaction.fromJson(element));
         }
         return result;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in _getBearTransactionsSelf()');
+        throw ErrorAPIResponse('Unexpected response in getOwnTransactions()');
     }
   }
 
@@ -97,8 +103,10 @@ class BearRepository {
     switch (response) {
       case ContentAPIResponse _:
         return true;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in confirmTransaction()');
+        throw ErrorAPIResponse('Unexpected response in confirmTransaction()');
     }
   }
 
@@ -111,8 +119,10 @@ class BearRepository {
     switch (response) {
       case ContentListAPIResponse _:
         return response.data;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in _getBearsByType()');
+        throw ErrorAPIResponse('Unexpected response in _getBearsByType()');
     }
   }
 
@@ -126,8 +136,10 @@ class BearRepository {
           result.add(BearType.fromJson(element));
         }
         return result;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in _getBearTypes()');
+        throw ErrorAPIResponse('Unexpected response in _getBearTypes()');
     }
   }
 }

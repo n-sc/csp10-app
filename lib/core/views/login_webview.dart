@@ -3,6 +3,7 @@ import 'dart:developer' show log;
 
 import 'package:csp10_app/core/app/bloc/app_bloc.dart';
 import 'package:csp10_app/core/data/constants.dart';
+import 'package:csp10_app/core/repositories/authentication_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -18,7 +19,8 @@ class _LoginScreenWebviewState extends State<LoginScreenWebview> {
   static const String _loginUri = '${Constants.apiURL}/oauth';
   static const String _keycloakUri = Constants.keycloakURL;
   static const String _callbackUri = '${Constants.apiURL}/oauth/callback';
-  late final WebViewController _webController;
+  // Nullable — only initialized after a bootstrap attempt fails.
+  WebViewController? _webController;
   bool _isLoginReady = false;
   bool _isLoggingIn = false;
   bool _showError = false;
@@ -28,13 +30,32 @@ class _LoginScreenWebviewState extends State<LoginScreenWebview> {
   @override
   void initState() {
     super.initState();
-    // TODO try logging in the user with data from disk before creating a webview
+    _tryRestoreSession();
+  }
+
+  /// Tries to restore a persisted session. If successful the [AppBloc] state
+  /// transitions to authenticated and GoRouter redirects automatically.
+  /// If it fails, the interactive WebView is initialized as a fallback.
+  Future<void> _tryRestoreSession() async {
+    bool restored;
+    try {
+      restored =
+          await context.read<AuthenticationRepository>().tryRestoreSession();
+    } catch (e) {
+      log('loginWebview: session restore error: $e');
+      restored = false;
+    }
+    if (!mounted || restored) return;
+    _initWebView();
+    setState(() {});
+  }
+
+  void _initWebView() {
     _webController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
-            // Update loading bar.
             _pageProgress = progress;
           },
           onPageStarted: (String url) {
@@ -47,7 +68,7 @@ class _LoginScreenWebviewState extends State<LoginScreenWebview> {
                 setState(() {
                   _isLoggingIn = true;
                 });
-                _extractToken(url);
+                _extractToken();
               } else if (url.startsWith(_keycloakUri)) {
                 setState(() {
                   _isLoginReady = true;
@@ -66,11 +87,12 @@ class _LoginScreenWebviewState extends State<LoginScreenWebview> {
       ..loadRequest(Uri.parse(_loginUri));
   }
 
-  void _extractToken(String uri) async {
-    // TODO check if request was successful
-    final String t = await _webController
+  void _extractToken() async {
+    final controller = _webController;
+    if (controller == null) return;
+    final String t = await controller
         .runJavaScriptReturningResult('document.body.textContent') as String;
-    // The string from JS is double encoded (only on Android), remove first layer here
+    // The JS string is double-encoded on Android; decode the outer layer here.
     String token;
     try {
       token = jsonDecode(t) as String;
@@ -95,16 +117,12 @@ class _LoginScreenWebviewState extends State<LoginScreenWebview> {
     if (_showError) {
       return ErrorWidget(_errorMessage);
     }
-    if (_isLoginReady && !_isLoggingIn) {
-      return WebViewWidget(
-        controller: _webController,
-      );
-    } else {
-      return Scaffold(
-        body: const Center(
-          child: CircularProgressIndicator.adaptive(),
-        ),
-      );
+    final controller = _webController;
+    if (controller != null && _isLoginReady && !_isLoggingIn) {
+      return WebViewWidget(controller: controller);
     }
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator.adaptive()),
+    );
   }
 }

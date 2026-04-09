@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:csp10_app/core/repositories/user_repository.dart';
 import 'package:csp10_app/features/bear/bear_repository.dart';
 import 'package:csp10_app/features/bear/bloc/bear_bloc.dart';
+import 'package:csp10_app/core/widgets/page_constraint.dart';
 import 'package:csp10_app/features/bear/widgets/bear_card.dart';
 import 'package:csp10_app/features/bear/widgets/bear_transaction_card.dart';
 import 'package:flutter/material.dart';
@@ -80,23 +79,31 @@ class _BearPageState extends State<BearPage>
   }
 }
 
-class BearOverview extends StatelessWidget {
+class BearOverview extends StatefulWidget {
   const BearOverview({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    context.read<BearBloc>().add(const BearOverviewRequest());
+  State<BearOverview> createState() => _BearOverviewState();
+}
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: math.min(MediaQuery.of(context).size.width, 600),
-        ),
-        child: BlocBuilder<BearBloc, BearState>(
-          buildWhen: (previous, current) => current is BearOverviewState,
+class _BearOverviewState extends State<BearOverview> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<BearBloc>().add(const BearOverviewRequest());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PageConstraint(
+      child: BlocBuilder<BearBloc, BearState>(
+          buildWhen: (previous, current) =>
+              previous.overviewStatus != current.overviewStatus ||
+              previous.types != current.types ||
+              previous.countsByTypeName != current.countsByTypeName,
           builder: (context, state) {
-            return switch (state) {
-              BearOverviewLoaded _ => RefreshIndicator.adaptive(
+            return switch (state.overviewStatus) {
+              BearOverviewStatus.success => RefreshIndicator.adaptive(
                   child: GridView.count(
                     padding: const EdgeInsets.all(20),
                     crossAxisCount: 1,
@@ -112,45 +119,52 @@ class BearOverview extends StatelessWidget {
                   onRefresh: () async =>
                       context.read<BearBloc>().add(const BearOverviewRequest()),
                 ),
-              BearOverviewError _ => Text(state.error),
-              BearState _ => const Center(
+              BearOverviewStatus.failure =>
+                Text(state.overviewError ?? 'Could not load bear overview.'),
+              _ => const Center(
                   child: CircularProgressIndicator.adaptive(),
                 ),
             };
           },
         ),
-      ),
     );
   }
 }
 
-class MyBears extends StatelessWidget {
+class MyBears extends StatefulWidget {
   const MyBears({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    context.read<BearBloc>().add(const BearTransactionsRequest());
+  State<MyBears> createState() => _MyBearsState();
+}
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-            maxWidth: math.min(MediaQuery.of(context).size.width, 600)),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Deine Bären",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+class _MyBearsState extends State<MyBears> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<BearBloc>().add(const BearTransactionsRequest());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PageConstraint(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              "Deine Bären",
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            Expanded(
+          ),
+          Expanded(
               child: BlocBuilder<BearBloc, BearState>(
                 buildWhen: (previous, current) =>
-                    current is BearTransactionsState,
+                    previous.transactionsStatus != current.transactionsStatus ||
+                    previous.ownTransactions != current.ownTransactions,
                 builder: (context, state) {
-                  return switch (state) {
-                    BearTransactionsLoaded _ => RefreshIndicator.adaptive(
+                  return switch (state.transactionsStatus) {
+                    BearTransactionsStatus.success => RefreshIndicator.adaptive(
                         onRefresh: () async => context
                             .read<BearBloc>()
                             .add(const BearTransactionsRefresh()),
@@ -168,8 +182,9 @@ class MyBears extends StatelessWidget {
                               )
                             : Center(child: Text('No transactions here.')),
                       ),
-                    BearTransactionsError _ => Text(state.error),
-                    BearState _ => const Center(
+                    BearTransactionsStatus.failure =>
+                      Text(state.transactionsError ?? 'Could not load transactions.'),
+                    _ => const Center(
                         child: CircularProgressIndicator.adaptive(),
                       ),
                   };
@@ -178,39 +193,45 @@ class MyBears extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
 
-class AllBears extends StatelessWidget {
+class AllBears extends StatefulWidget {
   const AllBears({super.key});
+
+  @override
+  State<AllBears> createState() => _AllBearsState();
+}
+
+class _AllBearsState extends State<AllBears> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<BearBloc>().add(const BearTransactionsRequest());
+  }
 
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    context.read<BearBloc>().add(const BearTransactionsRequest());
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-            maxWidth: math.min(MediaQuery.of(context).size.width, 600)),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Alle Bären",
-                style: theme.textTheme.titleLarge,
-              ),
+    return PageConstraint(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              "Alle Bären",
+              style: theme.textTheme.titleLarge,
             ),
-            Expanded(
+          ),
+          Expanded(
               child: BlocBuilder<BearBloc, BearState>(
                 buildWhen: (previous, current) =>
-                    current is BearTransactionsState,
+                    previous.transactionsStatus != current.transactionsStatus ||
+                    previous.transactions != current.transactions,
                 builder: (context, state) {
-                  return switch (state) {
-                    BearTransactionsLoaded _ => RefreshIndicator.adaptive(
+                  return switch (state.transactionsStatus) {
+                    BearTransactionsStatus.success => RefreshIndicator.adaptive(
                         onRefresh: () async => context
                             .read<BearBloc>()
                             .add(const BearTransactionsRefresh()),
@@ -224,8 +245,9 @@ class AllBears extends StatelessWidget {
                           ),
                         ),
                       ),
-                    BearTransactionsError _ => Text(state.error),
-                    BearState _ => const Center(
+                    BearTransactionsStatus.failure =>
+                      Text(state.transactionsError ?? 'Could not load transactions.'),
+                    _ => const Center(
                         child: CircularProgressIndicator.adaptive(),
                       ),
                   };
@@ -234,7 +256,6 @@ class AllBears extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

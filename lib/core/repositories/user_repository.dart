@@ -6,7 +6,7 @@ class UserRepository {
   final API _apiClient;
   List<User>? _users;
 
-  UserRepository({API? apiClient}) : _apiClient = apiClient ?? API();
+  UserRepository({required API apiClient}) : _apiClient = apiClient;
 
   Future<List<User>> get users async {
     return _users ??= await getUsers();
@@ -21,8 +21,10 @@ class UserRepository {
           users.add(User.fromJson(element as Map<String, dynamic>));
         }
         return users;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in getUsers()');
+        throw ErrorAPIResponse('Unexpected response in getUsers()');
     }
   }
 }

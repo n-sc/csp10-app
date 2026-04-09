@@ -1,8 +1,7 @@
 import 'dart:developer' show log;
-import 'dart:math' as math;
 
-import 'package:csp10_app/core/services/service_locator.dart';
 import 'package:csp10_app/core/widgets/flushbar.dart';
+import 'package:csp10_app/core/widgets/page_constraint.dart';
 import 'package:csp10_app/features/quotes/bloc/quotes_bloc.dart';
 import 'package:csp10_app/features/quotes/models/quote.dart';
 import 'package:csp10_app/features/quotes/widgets/quote_card.dart';
@@ -17,43 +16,36 @@ class QuotesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
 
-    return BlocProvider.value(
-      value: locator.get<QuotesBloc>(),
-      child: Builder(builder: (context) {
-        return Scaffold(
-          floatingActionButton: FloatingActionButton(
-            onPressed: () async {
-              final result = await context.push<String?>('/quotes/add');
-              log('Result from quote_add: $result');
-              if (context.mounted) {
-                context.read<QuotesBloc>().add(const QuotesOverviewRequest());
-              }
-            },
-            child: const Icon(Icons.add),
-          ),
-          body: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                  // TODO set default constraints in a central place?
-                  maxWidth: math.min(MediaQuery.of(context).size.width, 600)),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Text(
-                      "Zitate",
-                      style: theme.textTheme.headlineLarge,
-                    ),
-                  ),
-                  Expanded(
-                    child: QuotesStack(),
-                  ),
-                ],
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await context.push<String?>('/quotes/add');
+          log('Result from quote_add: $result');
+          // The bloc already dispatches QuotesOverviewRefresh after a
+          // successful creation. Only re-request when the user cancelled
+          // (no quote was created), to ensure the list is up to date.
+          if (context.mounted && result != 'success') {
+            context.read<QuotesBloc>().add(const QuotesOverviewRequest());
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: PageConstraint(
+        child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text(
+                  "Zitate",
+                  style: theme.textTheme.headlineLarge,
+                ),
               ),
-            ),
+              Expanded(
+                child: QuotesStack(),
+              ),
+            ],
           ),
-        );
-      }),
+      ),
     );
   }
 }
@@ -77,11 +69,15 @@ class _QuotesStackState extends State<QuotesStack> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<QuotesBloc, QuotesState>(
+      listenWhen: (previous, current) =>
+          previous.deleteStatus != current.deleteStatus &&
+          (current.deleteStatus == QuotesActionStatus.success ||
+              current.deleteStatus == QuotesActionStatus.failure),
       listener: (context, state) {
-        if (state is QuotesDeletionSuccess) {
+        if (state.deleteStatus == QuotesActionStatus.success) {
           showFlushbar(context, 'Quote deleted!');
           _expandedIndex = -1;
-        } else if (state is QuotesDeletionError) {
+        } else if (state.deleteStatus == QuotesActionStatus.failure) {
           showFlushbar(
             context,
             'Error while trying to delete the quote!',
@@ -90,8 +86,8 @@ class _QuotesStackState extends State<QuotesStack> {
         }
       },
       builder: (context, state) {
-        return switch (state) {
-          QuotesLoaded _ => Stack(
+        return switch (state.loadStatus) {
+          QuotesLoadStatus.success => Stack(
               children: [
                 RefreshIndicator.adaptive(
                   onRefresh: () async => context
@@ -118,8 +114,8 @@ class _QuotesStackState extends State<QuotesStack> {
                   _buildExpandedCard(state.quotes[_expandedIndex])
               ],
             ),
-          QuotesError _ => Text(state.error),
-          QuotesState _ => const Center(
+          QuotesLoadStatus.failure => Text(state.loadError ?? 'Unknown error'),
+          _ => const Center(
               child: CircularProgressIndicator.adaptive(),
             ),
         };

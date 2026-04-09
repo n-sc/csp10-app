@@ -2,36 +2,29 @@ import 'dart:developer' show log;
 
 import 'package:csp10_app/core/models/user.dart';
 import 'package:csp10_app/core/widgets/input_row.dart';
-import 'package:csp10_app/features/quotes/bloc/quotes_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AutocompleteUser extends StatefulWidget {
-  AutocompleteUser({
+class AutocompleteUser extends StatelessWidget {
+  const AutocompleteUser({
     super.key,
     required this.controller,
     required this.focusNode,
     required this.hintText,
     required this.validator,
+    required this.users,
+    this.isLoading = false,
+    this.errorText,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final String hintText;
   final String? Function(String?) validator;
+  final List<User> users;
+  final bool isLoading;
+  final String? errorText;
 
   static String _displayStringForOption(User option) => option.username;
-
-  @override
-  State<AutocompleteUser> createState() => _AutocompleteUserState();
-}
-
-class _AutocompleteUserState extends State<AutocompleteUser> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<QuotesBloc>().add(const QuotesAuthorsRequest());
-  }
 
   Widget _fieldViewBuilder(
     BuildContext context,
@@ -40,44 +33,45 @@ class _AutocompleteUserState extends State<AutocompleteUser> {
     VoidCallback onFieldSubmitted,
   ) {
     return InputFormField(
-      hintText: widget.hintText,
+      hintText: hintText,
       inputController: controller,
       focusNode: focusNode,
       onFieldSubmitted: onFieldSubmitted,
-      validatorFunction: widget.validator,
+      validatorFunction: validator,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<QuotesBloc, QuotesState>(
-      builder: (context, state) {
-        return switch (state) {
-          QuotesAuthorsLoaded _ => Autocomplete<User>(
-              displayStringForOption: AutocompleteUser._displayStringForOption,
-              fieldViewBuilder: _fieldViewBuilder,
-              optionsBuilder: (TextEditingValue textEditingValue) {
-                if (textEditingValue.text == '') {
-                  return const Iterable<User>.empty();
-                }
-                return state.users.where((User option) {
-                  return option
-                      .toString()
-                      .contains(textEditingValue.text.toLowerCase());
-                });
-              },
-              onSelected: (User selection) {
-                log('You just selected ${AutocompleteUser._displayStringForOption(selection)}');
-              },
-              textEditingController: widget.controller,
-              focusNode: widget.focusNode,
-            ),
-          QuotesAuthorsError _ => Text(state.error),
-          QuotesState _ => const Center(
-              child: CircularProgressIndicator.adaptive(),
-            )
-        };
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator.adaptive(),
+      );
+    }
+
+    if (errorText != null) {
+      return Text(errorText!);
+    }
+
+    return Autocomplete<User>(
+      displayStringForOption: AutocompleteUser._displayStringForOption,
+      fieldViewBuilder: _fieldViewBuilder,
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text == '') {
+          return const Iterable<User>.empty();
+        }
+        return users.where((User option) {
+          return option
+              .toString()
+              .toLowerCase()
+              .contains(textEditingValue.text.toLowerCase());
+        });
       },
+      onSelected: (User selection) {
+        log('You just selected ${AutocompleteUser._displayStringForOption(selection)}');
+      },
+      textEditingController: controller,
+      focusNode: focusNode,
     );
   }
 }

@@ -1,4 +1,3 @@
-import 'package:csp10_app/core/services/service_locator.dart';
 import 'package:csp10_app/core/widgets/autocomplete_user.dart';
 import 'package:csp10_app/core/widgets/flushbar.dart';
 import 'package:csp10_app/core/widgets/input_row.dart';
@@ -25,8 +24,15 @@ class _QuoteAddScreenState extends State<QuoteAddScreen> {
   final _quoteController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    context.read<QuotesBloc>().add(const QuotesAuthorsRequest());
+  }
+
+  @override
   void dispose() {
     _authorController.dispose();
+    _authorFocusNode.dispose();
     _contextController.dispose();
     _cityController.dispose();
     _locationController.dispose();
@@ -51,11 +57,11 @@ class _QuoteAddScreenState extends State<QuoteAddScreen> {
     }
 
     final Map<String, String> data = <String, String>{
-      "author": _authorController.text,
-      "context": _contextController.text,
-      "city": _cityController.text,
-      "location": _locationController.text,
-      "quote": _quoteController.text,
+      "author": _authorController.text.trim(),
+      "context": _contextController.text.trim(),
+      "city": _cityController.text.trim(),
+      "location": _locationController.text.trim(),
+      "quote": _quoteController.text.trim(),
     };
 
     // submit data to backend here
@@ -64,120 +70,132 @@ class _QuoteAddScreenState extends State<QuoteAddScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: locator.get<QuotesBloc>(),
-      child: Builder(
-          // using a builder to make the above context with the bloc available for everything below here
-          builder: (context) {
-        return Scaffold(
-          appBar: AppBar(
-            title: Text("New quote"),
-            elevation: 0,
-            leading: CloseButton(
-              onPressed: () => context.pop(),
-            ),
-            actions: [
-              UnconstrainedBox(
-                child: TextButton(
-                  onPressed: () => _onSubmit(context),
-                  child: Text(
-                    "Done",
-                  ),
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("New quote"),
+        elevation: 0,
+        leading: CloseButton(
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          UnconstrainedBox(
+            child: TextButton(
+              onPressed: () => _onSubmit(context),
+              child: Text(
+                "Done",
               ),
-              const SizedBox(width: 20),
-            ],
+            ),
           ),
-          body: BlocListener<QuotesBloc, QuotesState>(
-            listener: (context, state) {
-              if (state is QuotesCreationSuccess) {
-                context.pop('success');
-                showFlushbar(context, 'Quote created!');
-              } else if (state is QuotesCreationError) {
-                showFlushbar(
-                  context,
-                  'Error while trying to create the quote!',
-                  isError: true,
-                );
-              }
-            },
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 300,
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30.0,
-                          vertical: 20.0,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          color: Theme.of(context).colorScheme.surface,
-                        ),
-                        child: TextFormField(
-                          controller: _quoteController,
-                          maxLines: null,
-                          minLines: null,
-                          expands: true,
-                          textAlignVertical: TextAlignVertical.center,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            hintText: 'Write a quote here',
-                            border: InputBorder.none,
-                            hintStyle: TextStyle(
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                          validator: _stringValidator,
+          const SizedBox(width: 20),
+        ],
+      ),
+      body: BlocListener<QuotesBloc, QuotesState>(
+        listenWhen: (previous, current) =>
+            previous.createStatus != current.createStatus &&
+            (current.createStatus == QuotesActionStatus.success ||
+                current.createStatus == QuotesActionStatus.failure),
+        listener: (context, state) {
+          if (state.createStatus == QuotesActionStatus.success) {
+            context.pop('success');
+            showFlushbar(context, 'Quote created!');
+          } else if (state.createStatus == QuotesActionStatus.failure) {
+            showFlushbar(
+              context,
+              'Error while trying to create the quote!',
+              isError: true,
+            );
+          }
+        },
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Container(
+                    height: 300,
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30.0,
+                      vertical: 20.0,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                    child: TextFormField(
+                      controller: _quoteController,
+                      maxLines: null,
+                      minLines: null,
+                      expands: true,
+                      textAlignVertical: TextAlignVertical.center,
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        hintText: 'Write a quote here',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                          fontStyle: FontStyle.italic,
                         ),
                       ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      AutocompleteUser(
+                      validator: _stringValidator,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  BlocBuilder<QuotesBloc, QuotesState>(
+                    buildWhen: (previous, current) =>
+                        previous.authorsStatus != current.authorsStatus ||
+                        previous.authors != current.authors ||
+                        previous.authorsError != current.authorsError,
+                    builder: (context, state) {
+                      return AutocompleteUser(
                         controller: _authorController,
                         focusNode: _authorFocusNode,
                         hintText: 'Who said it?',
                         validator: _stringValidator,
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      InputFormField(
-                        hintText: 'Context',
-                        inputController: _contextController,
-                        validatorFunction: _stringValidator,
-                      ),
-                      SizedBox(
-                        height: 10.0,
-                      ),
-                      InputFormField(
-                        hintText: 'City',
-                        inputController: _cityController,
-                        validatorFunction: _stringValidator,
-                      ),
-                      SizedBox(
-                        height: 10.0,
-                      ),
-                      InputFormField(
-                        hintText: 'Location',
-                        inputController: _locationController,
-                        validatorFunction: _stringValidator,
-                      ),
-                    ],
+                        users: state.authors,
+                        isLoading: state.authorsStatus ==
+                            QuotesActionStatus.loading,
+                        errorText:
+                            state.authorsStatus == QuotesActionStatus.failure
+                                ? state.authorsError
+                                : null,
+                      );
+                    },
                   ),
-                ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  InputFormField(
+                    hintText: 'Context',
+                    inputController: _contextController,
+                    validatorFunction: _stringValidator,
+                  ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  InputFormField(
+                    hintText: 'City',
+                    inputController: _cityController,
+                    validatorFunction: _stringValidator,
+                  ),
+                  SizedBox(
+                    height: 10.0,
+                  ),
+                  InputFormField(
+                    hintText: 'Location',
+                    inputController: _locationController,
+                    validatorFunction: _stringValidator,
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 }

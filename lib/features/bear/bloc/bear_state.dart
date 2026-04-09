@@ -1,114 +1,109 @@
 part of 'bear_bloc.dart';
 
-// Basic states
+enum BearOverviewStatus { initial, loading, success, failure }
 
-sealed class BearState {
-  const BearState();
+enum BearTransactionsStatus { initial, loading, success, failure }
+
+enum BearTargetsStatus { initial, loading, success, failure }
+
+enum BearAttackStatus {
+  idle,
+  loading,
+  success,
+  cooldown,
+  activeTransaction,
+  failure,
 }
 
-final class BearInitial extends BearState {
-  const BearInitial();
-}
+enum BearConfirmStatus { idle, loading, success, failure }
 
-final class BearLoading extends BearState {
-  const BearLoading();
-}
+final class BearState extends Equatable {
+  const BearState({
+    this.overviewStatus = BearOverviewStatus.initial,
+    this.transactionsStatus = BearTransactionsStatus.initial,
+    this.targetsStatus = BearTargetsStatus.initial,
+    this.attackStatus = BearAttackStatus.idle,
+    this.confirmStatus = BearConfirmStatus.idle,
+    this.types = const <BearType>[],
+    this.countsByTypeName = const <String, int>{},
+    this.transactions = const <BearTransaction>[],
+    this.ownTransactions = const <BearTransaction>[],
+    this.targets = const <User>[],
+    this.overviewError,
+    this.transactionsError,
+    this.targetsError,
+    this.attackError,
+    this.confirmError,
+  });
 
-sealed class BearError extends BearState {
-  final String error;
-
-  const BearError(this.error);
-}
-
-// BearOverview
-
-sealed class BearOverviewState extends BearState {
-  const BearOverviewState();
-}
-
-final class BearOverviewLoading extends BearOverviewState {
-  const BearOverviewLoading();
-}
-
-final class BearOverviewLoaded extends BearOverviewState {
+  final BearOverviewStatus overviewStatus;
+  final BearTransactionsStatus transactionsStatus;
+  final BearTargetsStatus targetsStatus;
+  final BearAttackStatus attackStatus;
+  final BearConfirmStatus confirmStatus;
   final List<BearType> types;
   final Map<String, int> countsByTypeName;
-
-  const BearOverviewLoaded(this.types, this.countsByTypeName);
-}
-
-final class BearOverviewError extends BearOverviewState implements BearError {
-  @override
-  final String error;
-
-  const BearOverviewError(this.error);
-}
-
-// BearTransactions
-
-sealed class BearTransactionsState extends BearState {
-  const BearTransactionsState();
-}
-
-final class BearTransactionsLoading extends BearTransactionsState {
-  const BearTransactionsLoading();
-}
-
-final class BearTransactionsLoaded extends BearTransactionsState {
   final List<BearTransaction> transactions;
   final List<BearTransaction> ownTransactions;
-
-  const BearTransactionsLoaded(this.transactions, this.ownTransactions);
-}
-
-final class BearTransactionsError extends BearTransactionsState
-    implements BearError {
-  @override
-  final String error;
-
-  const BearTransactionsError(this.error);
-}
-
-// BrownBearAttack
-
-sealed class BrownBearAttackState extends BearState {
-  const BrownBearAttackState();
-}
-
-final class BrownBearAttackTargetsLoaded extends BrownBearAttackState {
   final List<User> targets;
+  final String? overviewError;
+  final String? transactionsError;
+  final String? targetsError;
+  final String? attackError;
+  final String? confirmError;
 
-  const BrownBearAttackTargetsLoaded(this.targets);
-}
+  BearState copyWith({
+    BearOverviewStatus? overviewStatus,
+    BearTransactionsStatus? transactionsStatus,
+    BearTargetsStatus? targetsStatus,
+    BearAttackStatus? attackStatus,
+    BearConfirmStatus? confirmStatus,
+    List<BearType>? types,
+    Map<String, int>? countsByTypeName,
+    List<BearTransaction>? transactions,
+    List<BearTransaction>? ownTransactions,
+    List<User>? targets,
+    String? overviewError,
+    String? transactionsError,
+    String? targetsError,
+    String? attackError,
+    String? confirmError,
+  }) {
+    return BearState(
+      overviewStatus: overviewStatus ?? this.overviewStatus,
+      transactionsStatus: transactionsStatus ?? this.transactionsStatus,
+      targetsStatus: targetsStatus ?? this.targetsStatus,
+      attackStatus: attackStatus ?? this.attackStatus,
+      confirmStatus: confirmStatus ?? this.confirmStatus,
+      types: types ?? this.types,
+      countsByTypeName: countsByTypeName ?? this.countsByTypeName,
+      transactions: transactions ?? this.transactions,
+      ownTransactions: ownTransactions ?? this.ownTransactions,
+      targets: targets ?? this.targets,
+      overviewError: overviewError,
+      transactionsError: transactionsError,
+      targetsError: targetsError,
+      attackError: attackError,
+      confirmError: confirmError,
+    );
+  }
 
-final class BrownBearAttackTargetsError extends BrownBearAttackState
-    implements BearError {
   @override
-  final String error;
-
-  const BrownBearAttackTargetsError(this.error);
-}
-
-final class BrownBearAttackLoading extends BrownBearAttackState {
-  const BrownBearAttackLoading();
-}
-
-final class BrownBearAttackSuccess extends BrownBearAttackState {
-  const BrownBearAttackSuccess();
-}
-
-final class BrownBearAttackCooldown extends BrownBearAttackState {
-  const BrownBearAttackCooldown();
-}
-
-final class BrownBearAttackActiveTransaction extends BrownBearAttackState {
-  const BrownBearAttackActiveTransaction();
-}
-
-final class BrownBearAttackFailure extends BrownBearAttackState
-    implements BearError {
-  @override
-  final String error;
-
-  const BrownBearAttackFailure(this.error);
+  List<Object?> get props => [
+        overviewStatus,
+        transactionsStatus,
+        targetsStatus,
+        attackStatus,
+        confirmStatus,
+        types,
+        countsByTypeName,
+        transactions,
+        ownTransactions,
+        targets,
+        overviewError,
+        transactionsError,
+        targetsError,
+        attackError,
+        confirmError,
+      ];
 }

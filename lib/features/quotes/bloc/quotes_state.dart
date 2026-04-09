@@ -1,65 +1,78 @@
 part of 'quotes_bloc.dart';
 
-sealed class QuotesState extends Equatable {
-  const QuotesState();
+enum QuotesLoadStatus { initial, loading, success, failure }
 
-  @override
-  List<Object> get props => [];
-}
+enum QuotesActionStatus { idle, loading, success, failure }
 
-final class QuotesInitial extends QuotesState {
-  const QuotesInitial();
-}
+final class QuotesState extends Equatable {
+  const QuotesState({
+    this.loadStatus = QuotesLoadStatus.initial,
+    this.authorsStatus = QuotesActionStatus.idle,
+    this.createStatus = QuotesActionStatus.idle,
+    this.deleteStatus = QuotesActionStatus.idle,
+    this.quotes = const <Quote>[],
+    this.authors = const <User>[],
+    this.loadError,
+    this.authorsError,
+    this.createError,
+    this.deleteError,
+    this.createdQuote,
+  });
 
-final class QuotesLoading extends QuotesState {
-  const QuotesLoading();
-}
-
-final class QuotesLoaded extends QuotesState {
+  final QuotesLoadStatus loadStatus;
+  final QuotesActionStatus authorsStatus;
+  final QuotesActionStatus createStatus;
+  final QuotesActionStatus deleteStatus;
   final List<Quote> quotes;
+  final List<User> authors;
+  final String? loadError;
+  final String? authorsError;
+  final String? createError;
+  final String? deleteError;
+  final Quote? createdQuote;
 
-  const QuotesLoaded(this.quotes);
-}
+  QuotesState copyWith({
+    QuotesLoadStatus? loadStatus,
+    QuotesActionStatus? authorsStatus,
+    QuotesActionStatus? createStatus,
+    QuotesActionStatus? deleteStatus,
+    List<Quote>? quotes,
+    List<User>? authors,
+    String? loadError,
+    String? authorsError,
+    String? createError,
+    String? deleteError,
+    Quote? createdQuote,
+    bool clearCreatedQuote = false,
+  }) {
+    return QuotesState(
+      loadStatus: loadStatus ?? this.loadStatus,
+      authorsStatus: authorsStatus ?? this.authorsStatus,
+      createStatus: createStatus ?? this.createStatus,
+      deleteStatus: deleteStatus ?? this.deleteStatus,
+      quotes: quotes ?? this.quotes,
+      authors: authors ?? this.authors,
+      loadError: loadError,
+      authorsError: authorsError,
+      createError: createError,
+      deleteError: deleteError,
+      createdQuote:
+          clearCreatedQuote ? null : (createdQuote ?? this.createdQuote),
+    );
+  }
 
-final class QuotesError extends QuotesState {
-  final String error;
-
-  const QuotesError(this.error);
-}
-
-final class QuotesAuthorsLoaded extends QuotesState {
-  final List<User> users;
-
-  const QuotesAuthorsLoaded(this.users);
-}
-
-final class QuotesAuthorsError extends QuotesState implements QuotesError {
   @override
-  final String error;
-
-  const QuotesAuthorsError(this.error);
-}
-
-final class QuotesCreationSuccess extends QuotesState {
-  final Quote quote;
-
-  const QuotesCreationSuccess(this.quote);
-}
-
-final class QuotesCreationError extends QuotesState implements QuotesError {
-  @override
-  final String error;
-
-  const QuotesCreationError(this.error);
-}
-
-final class QuotesDeletionSuccess extends QuotesState {
-  const QuotesDeletionSuccess();
-}
-
-final class QuotesDeletionError extends QuotesState implements QuotesError {
-  @override
-  final String error;
-
-  const QuotesDeletionError(this.error);
+  List<Object?> get props => [
+        loadStatus,
+        authorsStatus,
+        createStatus,
+        deleteStatus,
+        quotes,
+        authors,
+        loadError,
+        authorsError,
+        createError,
+        deleteError,
+        createdQuote,
+      ];
 }
