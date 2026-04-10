@@ -41,7 +41,7 @@ class QuotesPage extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: QuotesStack(),
+                child: const QuotesStack(),
               ),
             ],
           ),

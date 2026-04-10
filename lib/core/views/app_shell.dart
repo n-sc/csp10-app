@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-export 'package:csp10_app/features/bear/views/bear.dart';
-export 'package:csp10_app/features/home/views/home.dart';
-export 'package:csp10_app/features/quotes/views/quotes.dart';
-
 class AppShell extends StatelessWidget {
   const AppShell({
     super.key,
