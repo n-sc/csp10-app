@@ -6,7 +6,7 @@ class QuotesRepository {
   final API _apiclient;
   List<Quote>? _quotes;
 
-  QuotesRepository({API? apiClient}) : _apiclient = apiClient ?? API();
+  QuotesRepository({required API apiClient}) : _apiclient = apiClient;
 
   Future<List<Quote>> get quotes async {
     return _quotes ??= await _getAllQuotes();
@@ -21,8 +21,10 @@ class QuotesRepository {
     switch (response) {
       case ContentAPIResponse _:
         return Quote.fromJson(response.data as Map<String, dynamic>);
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in createQuote()');
+        throw ErrorAPIResponse('Unexpected response in createQuote()');
     }
   }
 
@@ -31,8 +33,10 @@ class QuotesRepository {
     switch (response) {
       case EmptyAPIResponse _:
         return;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in deleteQuote()');
+        throw ErrorAPIResponse('Unexpected response in deleteQuote()');
     }
   }
 
@@ -50,8 +54,10 @@ class QuotesRepository {
         }
         quotes.sort((a, b) => b.id.compareTo(a.id));
         return quotes;
+      case ErrorAPIResponse error:
+        throw error;
       default:
-        throw ErrorAPIResponse('Error in _getAllQuotes');
+        throw ErrorAPIResponse('Unexpected response in _getAllQuotes()');
     }
   }
 }

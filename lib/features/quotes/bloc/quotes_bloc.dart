@@ -16,7 +16,7 @@ class QuotesBloc extends Bloc<QuotesEvent, QuotesState> {
     required UserRepository userRepository,
   })  : _quotesRepository = quotesRepository,
         _userRepository = userRepository,
-        super(QuotesInitial()) {
+        super(const QuotesState()) {
     on<QuotesOverviewRequest>(_onQuotesOverviewRequest);
     on<QuotesOverviewRefresh>(_onQuotesOverviewRefresh);
     on<QuotesAuthorsRequest>(_onQuotesAuthorsRequest);
@@ -43,37 +43,35 @@ class QuotesBloc extends Bloc<QuotesEvent, QuotesState> {
     QuotesOverviewRequest event,
     Emitter<QuotesState> emit,
   ) async {
-    emit(const QuotesLoading());
-    try {
-      var quotes = await _quotesRepository.quotes;
-      emit(QuotesLoaded(quotes));
-    } catch (e) {
-      emit(QuotesError(e.toString()));
-    }
+    await _loadQuotes(emit);
   }
 
   void _onQuotesOverviewRefresh(
     QuotesOverviewRefresh event,
     Emitter<QuotesState> emit,
   ) async {
-    emit(const QuotesLoading());
-    try {
-      final quotes = await _quotesRepository.refreshQuotes();
-      emit(QuotesLoaded(quotes));
-    } catch (e) {
-      emit(QuotesError(e.toString()));
-    }
+    await _loadQuotes(emit, forceRefresh: true);
   }
 
   void _onQuotesAuthorsRequest(
     QuotesAuthorsRequest event,
     Emitter<QuotesState> emit,
   ) async {
+    emit(state.copyWith(
+      authorsStatus: QuotesActionStatus.loading,
+      authorsError: null,
+    ));
     try {
       final users = await _userRepository.users;
-      emit(QuotesAuthorsLoaded(users));
+      emit(state.copyWith(
+        authorsStatus: QuotesActionStatus.success,
+        authors: users,
+      ));
     } catch (e) {
-      emit(QuotesAuthorsError(e.toString()));
+      emit(state.copyWith(
+        authorsStatus: QuotesActionStatus.failure,
+        authorsError: e.toString(),
+      ));
     }
   }
 
@@ -81,15 +79,23 @@ class QuotesBloc extends Bloc<QuotesEvent, QuotesState> {
     QuotesQuoteCreate event,
     Emitter<QuotesState> emit,
   ) async {
+    emit(state.copyWith(
+      createStatus: QuotesActionStatus.loading,
+      createError: null,
+      clearCreatedQuote: true,
+    ));
     try {
       final quote = await _quotesRepository.createQuote(event.data);
-      emit(QuotesCreationSuccess(quote));
-
-      // wait a second before reloading the quotes
-      await Future<void>.delayed(Duration(seconds: 1));
+      emit(state.copyWith(
+        createStatus: QuotesActionStatus.success,
+        createdQuote: quote,
+      ));
       add(const QuotesOverviewRefresh());
     } catch (e) {
-      emit(QuotesCreationError(e.toString()));
+      emit(state.copyWith(
+        createStatus: QuotesActionStatus.failure,
+        createError: e.toString(),
+      ));
     }
   }
 
@@ -97,12 +103,48 @@ class QuotesBloc extends Bloc<QuotesEvent, QuotesState> {
     QuotesQuoteDelete event,
     Emitter<QuotesState> emit,
   ) async {
+    emit(state.copyWith(
+      deleteStatus: QuotesActionStatus.loading,
+      deleteError: null,
+    ));
     try {
       await _quotesRepository.deleteQuote(event.id);
-      emit(const QuotesDeletionSuccess());
+      emit(state.copyWith(deleteStatus: QuotesActionStatus.success));
       add(const QuotesOverviewRefresh());
     } catch (e) {
-      emit(QuotesDeletionError(e.toString()));
+      emit(state.copyWith(
+        deleteStatus: QuotesActionStatus.failure,
+        deleteError: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _loadQuotes(
+    Emitter<QuotesState> emit, {
+    bool forceRefresh = false,
+  }) async {
+    emit(state.copyWith(
+      loadStatus: QuotesLoadStatus.loading,
+      loadError: null,
+      createStatus: QuotesActionStatus.idle,
+      deleteStatus: QuotesActionStatus.idle,
+      createError: null,
+      deleteError: null,
+      clearCreatedQuote: true,
+    ));
+    try {
+      final quotes = forceRefresh
+          ? await _quotesRepository.refreshQuotes()
+          : await _quotesRepository.quotes;
+      emit(state.copyWith(
+        loadStatus: QuotesLoadStatus.success,
+        quotes: quotes,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        loadStatus: QuotesLoadStatus.failure,
+        loadError: e.toString(),
+      ));
     }
   }
 }

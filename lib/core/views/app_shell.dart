@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-export 'package:csp10_app/features/bear/views/bear.dart';
-export 'package:csp10_app/features/home/views/home.dart';
-export 'package:csp10_app/features/quotes/views/quotes.dart';
-
 class AppShell extends StatelessWidget {
   const AppShell({
     super.key,
@@ -23,11 +19,13 @@ class AppShell extends StatelessWidget {
         elevation: 0,
         destinations: [
           NavigationDestination(
+            tooltip: 'Home tab',
             selectedIcon: Icon(Icons.home),
             icon: Icon(Icons.home_outlined),
             label: "Home",
           ),
           NavigationDestination(
+            tooltip: 'Bear tab',
             selectedIcon: Badge(
               child: Icon(Icons.sports_bar),
             ),
@@ -38,6 +36,7 @@ class AppShell extends StatelessWidget {
             label: "Bär",
           ),
           NavigationDestination(
+            tooltip: 'Quotes tab',
             selectedIcon: Icon(Icons.notes),
             icon: Icon(Icons.notes_outlined),
             label: "Zitate",

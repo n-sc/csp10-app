@@ -1,15 +1,20 @@
 import 'dart:async' show StreamSubscription;
 
 import 'package:csp10_app/core/app/bloc/app_bloc.dart';
+import 'package:csp10_app/core/repositories/user_repository.dart';
 import 'package:csp10_app/core/services/service_locator.dart';
-import 'package:csp10_app/core/views/login_webview.dart' show LoginScreenWebview;
 import 'package:csp10_app/core/views/app_shell.dart';
-import 'package:csp10_app/features/quotes/views/quote_add.dart' show QuoteAddScreen;
+import 'package:csp10_app/core/views/login_webview.dart' show LoginScreenWebview;
+import 'package:csp10_app/features/bear/views/bear.dart';
+import 'package:csp10_app/features/home/views/home.dart';
+import 'package:csp10_app/features/quotes/quotes_branch.dart';
+import 'package:csp10_app/features/quotes/quotes_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-GoRouter createRouter() {
-  AppBloc appBloc = locator.get<AppBloc>();
+GoRouter createRouter({
+  required AppBloc appBloc,
+}) {
   return GoRouter(
     initialLocation: '/login',
     routes: <RouteBase>[
@@ -35,19 +40,9 @@ GoRouter createRouter() {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/quotes',
-                builder: (context, state) => const QuotesPage(),
-                routes: <RouteBase>[
-                  GoRoute(
-                    path: 'add',
-                    builder: (context, state) => const QuoteAddScreen(),
-                  )
-                ],
-              ),
-            ],
+          createQuotesBranch(
+            quotesRepository: locator.get<QuotesRepository>(),
+            userRepository: locator.get<UserRepository>(),
           ),
         ],
       ),

@@ -17,3 +17,10 @@ final class AppSwitchTheme extends AppEvent {
   final ThemeMode mode;
   const AppSwitchTheme({required this.mode});
 }
+
+/// Internal event emitted when the user stream in [AuthenticationRepository]
+/// produces a new value. Not intended to be dispatched by external code.
+final class _AppUserChanged extends AppEvent {
+  final User user;
+  const _AppUserChanged({required this.user});
+}

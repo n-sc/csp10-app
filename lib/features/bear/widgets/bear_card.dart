@@ -1,5 +1,6 @@
 import 'dart:developer' show log;
 
+import 'package:csp10_app/core/widgets/loading_screen.dart';
 import 'package:csp10_app/features/bear/bloc/bear_bloc.dart';
 import 'package:csp10_app/features/bear/models/beartype.dart';
 import 'package:csp10_app/core/widgets/flushbar.dart';
@@ -98,14 +99,18 @@ class BearCard extends StatelessWidget {
                         ),
                         BlocBuilder<BearBloc, BearState>(
                           buildWhen: (previous, current) =>
-                              current is BearOverviewState,
+                              previous.overviewStatus !=
+                                  current.overviewStatus ||
+                              previous.countsByTypeName !=
+                                  current.countsByTypeName,
                           builder: (context, state) {
-                            return switch (state) {
-                              BearOverviewLoaded _ => Text(
+                            return switch (state.overviewStatus) {
+                              BearOverviewStatus.success => Text(
                                   "Du hast noch ${state.countsByTypeName[beartype.name] ?? "?"} Stück"),
-                              BearOverviewError _ => Text(state.error),
-                              BearState _ => const Center(
-                                  child: CircularProgressIndicator.adaptive(),
+                              BearOverviewStatus.failure =>
+                                Text(state.overviewError ?? 'Error'),
+                              _ => const Center(
+                                  child: LoadingScreen(),
                                 ),
                             };
                           },
@@ -177,36 +182,44 @@ class _BrownBearAttackDialogState extends State<BrownBearAttackDialog> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<BearBloc, BearState>(
-      listenWhen: (previousState, state) => state is BrownBearAttackState,
+      listenWhen: (previous, current) =>
+          previous.attackStatus != current.attackStatus &&
+          (current.attackStatus == BearAttackStatus.success ||
+              current.attackStatus == BearAttackStatus.cooldown ||
+              current.attackStatus == BearAttackStatus.activeTransaction ||
+              current.attackStatus == BearAttackStatus.failure),
       listener: (context, state) {
-        if (state is BrownBearAttackSuccess) {
+        if (state.attackStatus == BearAttackStatus.success) {
           // return to overview and indicate success
           context.pop('success');
           showFlushbar(context, 'Der Bär ist unterwegs :)');
-        } else if (state is BrownBearAttackCooldown) {
+        } else if (state.attackStatus == BearAttackStatus.cooldown) {
           showFlushbar(
             context,
             'The target is still on cooldown!',
             isError: true,
           );
-        } else if (state is BrownBearAttackActiveTransaction) {
+        } else if (state.attackStatus == BearAttackStatus.activeTransaction) {
           showFlushbar(
             context,
             'The target is already part of an active transaction!',
             isError: true,
           );
-        } else if (state is BrownBearAttackFailure) {
+        } else if (state.attackStatus == BearAttackStatus.failure) {
           showFlushbar(
             context,
-            state.error,
+            state.attackError ?? 'Bear attack failed.',
             isError: true,
           );
         }
       },
-      buildWhen: (previous, current) => current is BrownBearAttackTargetsLoaded,
+      buildWhen: (previous, current) =>
+          previous.targetsStatus != current.targetsStatus ||
+          previous.targets != current.targets ||
+          previous.targetsError != current.targetsError,
       builder: (context, state) {
-        switch (state) {
-          case BrownBearAttackTargetsLoaded _:
+        switch (state.targetsStatus) {
+          case BearTargetsStatus.success:
             List<DropdownMenuEntry<String>> userMenuEntries = [];
             for (var user in state.targets) {
               userMenuEntries.add(DropdownMenuEntry(
@@ -252,11 +265,11 @@ class _BrownBearAttackDialogState extends State<BrownBearAttackDialog> {
                 ),
               ),
             );
-          case BrownBearAttackTargetsError _:
-            return Text(state.error);
+          case BearTargetsStatus.failure:
+            return Text(state.targetsError ?? 'Could not load targets.');
           default:
             return const Center(
-              child: CircularProgressIndicator.adaptive(),
+              child: LoadingScreen(),
             );
         }
       },

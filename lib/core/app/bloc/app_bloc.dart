@@ -1,3 +1,4 @@
+import 'dart:async' show StreamSubscription;
 import 'dart:developer';
 
 import 'package:csp10_app/core/repositories/authentication_repository.dart';
@@ -13,12 +14,26 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc({required AuthenticationRepository authenticationRepository})
       : _authenticationRepository = authenticationRepository,
         super(AppState(user: authenticationRepository.currentUser)) {
+    on<_AppUserChanged>(_onAppUserChanged);
     on<AppLoginRequested>(_onAppLoginRequested);
     on<AppLogoutPressed>(_onLogoutPressed);
     on<AppSwitchTheme>(_onAppSwitchTheme);
+    // Subscribe to user stream so any internal change (login, restore,
+    // logout, refresh) automatically propagates to bloc state.
+    _userSubscription = _authenticationRepository.user.listen(
+      (user) => add(_AppUserChanged(user: user)),
+      onError: addError,
+    );
   }
 
   final AuthenticationRepository _authenticationRepository;
+  late final StreamSubscription<User> _userSubscription;
+
+  @override
+  Future<void> close() {
+    _userSubscription.cancel();
+    return super.close();
+  }
 
   @override
   void onTransition(Transition<AppEvent, AppState> transition) {
@@ -32,17 +47,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     log('AppBloc error: $error');
   }
 
+  void _onAppUserChanged(
+    _AppUserChanged event,
+    Emitter<AppState> emit,
+  ) {
+    emit(state.copyWith(user: event.user));
+  }
+
   Future<void> _onAppLoginRequested(
     AppLoginRequested event,
     Emitter<AppState> emit,
   ) async {
     try {
       await _authenticationRepository.logIn(event.json);
-      return emit.onEach(
-        _authenticationRepository.user,
-        onData: (user) => emit(AppState(user: user)),
-        onError: addError,
-      );
+      // State update is handled by the _userSubscription → _AppUserChanged.
     } catch (e) {
       addError(e);
     }
@@ -53,6 +71,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) {
     _authenticationRepository.logOut();
+    // State update is handled by the _userSubscription → _AppUserChanged.
   }
 
   void _onAppSwitchTheme(

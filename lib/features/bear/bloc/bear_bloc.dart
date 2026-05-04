@@ -19,7 +19,7 @@ class BearBloc extends Bloc<BearEvent, BearState> {
     required UserRepository userRepository,
   })  : _bearRepository = bearRepository,
         _userRepository = userRepository,
-        super(BearInitial()) {
+      super(const BearState()) {
     on<BearOverviewRequest>(_onBearOverviewRequest);
     on<BrownBearAttackTargetsRequest>(_onBrownBearTargetsRequest);
     on<BrownBearAttack>(_onBrownBearAttack);
@@ -47,7 +47,10 @@ class BearBloc extends Bloc<BearEvent, BearState> {
     BearOverviewRequest event,
     Emitter<BearState> emit,
   ) async {
-    emit(const BearOverviewLoading());
+    emit(state.copyWith(
+      overviewStatus: BearOverviewStatus.loading,
+      overviewError: null,
+    ));
     try {
       final types = await _bearRepository.beartypes;
       final Map<String, int> counts = {};
@@ -55,9 +58,16 @@ class BearBloc extends Bloc<BearEvent, BearState> {
       for (var type in types) {
         counts[type.name] = await _bearRepository.getBearCountByType(type.id);
       }
-      emit(BearOverviewLoaded(types, counts));
+      emit(state.copyWith(
+        overviewStatus: BearOverviewStatus.success,
+        types: types,
+        countsByTypeName: counts,
+      ));
     } catch (e) {
-      emit(BearOverviewError(e.toString()));
+      emit(state.copyWith(
+        overviewStatus: BearOverviewStatus.failure,
+        overviewError: e.toString(),
+      ));
     }
   }
 
@@ -65,12 +75,21 @@ class BearBloc extends Bloc<BearEvent, BearState> {
     BrownBearAttackTargetsRequest event,
     Emitter<BearState> emit,
   ) async {
-    emit(const BearLoading());
+    emit(state.copyWith(
+      targetsStatus: BearTargetsStatus.loading,
+      targetsError: null,
+    ));
     try {
       final targets = await _userRepository.getUsers();
-      emit(BrownBearAttackTargetsLoaded(targets));
+      emit(state.copyWith(
+        targetsStatus: BearTargetsStatus.success,
+        targets: targets,
+      ));
     } catch (e) {
-      emit(BrownBearAttackTargetsError(e.toString()));
+      emit(state.copyWith(
+        targetsStatus: BearTargetsStatus.failure,
+        targetsError: e.toString(),
+      ));
     }
   }
 
@@ -78,7 +97,10 @@ class BearBloc extends Bloc<BearEvent, BearState> {
     BrownBearAttack event,
     Emitter<BearState> emit,
   ) async {
-    emit(const BrownBearAttackLoading());
+    emit(state.copyWith(
+      attackStatus: BearAttackStatus.loading,
+      attackError: null,
+    ));
     try {
       final brownBears = await _bearRepository.getBrownBears();
       final payload = {
@@ -87,23 +109,28 @@ class BearBloc extends Bloc<BearEvent, BearState> {
       };
       await _bearRepository.useBrownBear(payload);
 
-      final transactions = await _bearRepository.getAllTransactions();
-      final ownTransactions = await _bearRepository.getOwnTransactions();
-
-      emit(BrownBearAttackSuccess());
-      emit(BearTransactionsLoaded(transactions, ownTransactions));
+      emit(state.copyWith(attackStatus: BearAttackStatus.success));
+      await _loadTransactions(emit);
     } on ErrorAPIResponse catch (e) {
       if (e.statusCode == 400) {
         if (e.msg.contains('cooldown')) {
-          emit(const BrownBearAttackCooldown());
+          emit(state.copyWith(attackStatus: BearAttackStatus.cooldown));
         } else if (e.msg.contains('active transaction')) {
-          emit(const BrownBearAttackActiveTransaction());
+          emit(state.copyWith(
+            attackStatus: BearAttackStatus.activeTransaction,
+          ));
         }
       } else {
-        emit(BrownBearAttackFailure(e.toString()));
+        emit(state.copyWith(
+          attackStatus: BearAttackStatus.failure,
+          attackError: e.toString(),
+        ));
       }
     } catch (e) {
-      emit(BrownBearAttackFailure(e.toString()));
+      emit(state.copyWith(
+        attackStatus: BearAttackStatus.failure,
+        attackError: e.toString(),
+      ));
     }
   }
 
@@ -111,27 +138,36 @@ class BearBloc extends Bloc<BearEvent, BearState> {
     BearTransactionsRequest event,
     Emitter<BearState> emit,
   ) async {
-    emit(const BearTransactionsLoading());
-    try {
-      final transactions = await _bearRepository.getAllTransactions();
-      final ownTransactions = await _bearRepository.getOwnTransactions();
-      emit(BearTransactionsLoaded(transactions, ownTransactions));
-    } catch (e) {
-      emit(BearTransactionsError(e.toString()));
-    }
+    await _loadTransactions(emit);
   }
 
   void _onBearTransactionsRefresh(
     BearTransactionsRefresh event,
     Emitter<BearState> emit,
   ) async {
-    emit(const BearTransactionsLoading());
+    await _loadTransactions(emit);
+  }
+
+  Future<void> _loadTransactions(Emitter<BearState> emit) async {
+    emit(state.copyWith(
+      transactionsStatus: BearTransactionsStatus.loading,
+      transactionsError: null,
+      confirmStatus: BearConfirmStatus.idle,
+      confirmError: null,
+    ));
     try {
       final transactions = await _bearRepository.getAllTransactions();
       final ownTransactions = await _bearRepository.getOwnTransactions();
-      emit(BearTransactionsLoaded(transactions, ownTransactions));
+      emit(state.copyWith(
+        transactionsStatus: BearTransactionsStatus.success,
+        transactions: transactions,
+        ownTransactions: ownTransactions,
+      ));
     } catch (e) {
-      emit(BearTransactionsError(e.toString()));
+      emit(state.copyWith(
+        transactionsStatus: BearTransactionsStatus.failure,
+        transactionsError: e.toString(),
+      ));
     }
   }
 
@@ -139,18 +175,25 @@ class BearBloc extends Bloc<BearEvent, BearState> {
     BearTransactionConfirmation event,
     Emitter<BearState> emit,
   ) async {
-    emit(const BearLoading());
+    emit(state.copyWith(
+      confirmStatus: BearConfirmStatus.loading,
+      confirmError: null,
+    ));
     try {
       final success =
           await _bearRepository.confirmTransaction(event.transactionId);
 
-      final transactions = await _bearRepository.getAllTransactions();
-      final ownTransactions = await _bearRepository.getOwnTransactions();
-
-      emit(BearTransactionsLoaded(transactions, ownTransactions));
+      await _loadTransactions(emit);
+      emit(state.copyWith(confirmStatus: BearConfirmStatus.success));
       event.completer.complete(success);
     } catch (e) {
-      emit(BearTransactionsError(e.toString()));
+      emit(state.copyWith(
+        confirmStatus: BearConfirmStatus.failure,
+        confirmError: e.toString(),
+      ));
+      if (!event.completer.isCompleted) {
+        event.completer.complete(false);
+      }
     }
   }
 }
