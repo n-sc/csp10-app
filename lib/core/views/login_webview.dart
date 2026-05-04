@@ -4,6 +4,7 @@ import 'dart:developer' show log;
 import 'package:csp10_app/core/app/bloc/app_bloc.dart';
 import 'package:csp10_app/core/data/constants.dart';
 import 'package:csp10_app/core/repositories/authentication_repository.dart';
+import 'package:csp10_app/core/widgets/loading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -122,7 +123,7 @@ class _LoginScreenWebviewState extends State<LoginScreenWebview> {
       return WebViewWidget(controller: controller);
     }
     return const Scaffold(
-      body: Center(child: CircularProgressIndicator.adaptive()),
+      body: Center(child: LoadingScreen()),
     );
   }
 }

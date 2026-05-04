@@ -1,5 +1,6 @@
 import 'dart:developer' show log;
 
+import 'package:csp10_app/core/widgets/loading_screen.dart';
 import 'package:csp10_app/features/bear/bloc/bear_bloc.dart';
 import 'package:csp10_app/features/bear/models/beartype.dart';
 import 'package:csp10_app/core/widgets/flushbar.dart';
@@ -109,7 +110,7 @@ class BearCard extends StatelessWidget {
                               BearOverviewStatus.failure =>
                                 Text(state.overviewError ?? 'Error'),
                               _ => const Center(
-                                  child: CircularProgressIndicator.adaptive(),
+                                  child: LoadingScreen(),
                                 ),
                             };
                           },
@@ -268,7 +269,7 @@ class _BrownBearAttackDialogState extends State<BrownBearAttackDialog> {
             return Text(state.targetsError ?? 'Could not load targets.');
           default:
             return const Center(
-              child: CircularProgressIndicator.adaptive(),
+              child: LoadingScreen(),
             );
         }
       },

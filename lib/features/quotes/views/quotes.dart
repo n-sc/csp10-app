@@ -1,6 +1,7 @@
 import 'dart:developer' show log;
 
 import 'package:csp10_app/core/widgets/flushbar.dart';
+import 'package:csp10_app/core/widgets/loading_screen.dart';
 import 'package:csp10_app/core/widgets/page_constraint.dart';
 import 'package:csp10_app/features/quotes/bloc/quotes_bloc.dart';
 import 'package:csp10_app/features/quotes/models/quote.dart';
@@ -116,7 +117,7 @@ class _QuotesStackState extends State<QuotesStack> {
             ),
           QuotesLoadStatus.failure => Text(state.loadError ?? 'Unknown error'),
           _ => const Center(
-              child: CircularProgressIndicator.adaptive(),
+              child: LoadingScreen(),
             ),
         };
       },

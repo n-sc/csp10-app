@@ -7,7 +7,6 @@ import 'package:csp10_app/core/views/app_shell.dart';
 import 'package:csp10_app/core/views/login_webview.dart' show LoginScreenWebview;
 import 'package:csp10_app/features/bear/views/bear.dart';
 import 'package:csp10_app/features/home/views/home.dart';
-import 'package:csp10_app/features/quotes/bloc/quotes_bloc.dart';
 import 'package:csp10_app/features/quotes/quotes_branch.dart';
 import 'package:csp10_app/features/quotes/quotes_repository.dart';
 import 'package:flutter/material.dart';

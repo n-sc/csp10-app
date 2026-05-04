@@ -2,6 +2,7 @@ import 'dart:developer' show log;
 
 import 'package:csp10_app/core/models/user.dart';
 import 'package:csp10_app/core/widgets/input_row.dart';
+import 'package:csp10_app/core/widgets/loading_screen.dart';
 import 'package:flutter/material.dart';
 
 class AutocompleteUser extends StatelessWidget {
@@ -45,7 +46,7 @@ class AutocompleteUser extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Center(
-        child: CircularProgressIndicator.adaptive(),
+        child: LoadingScreen(),
       );
     }
 

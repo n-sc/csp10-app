@@ -1,5 +1,6 @@
 import 'package:csp10_app/core/app/bloc/app_bloc.dart';
 import 'package:csp10_app/core/repositories/user_repository.dart';
+import 'package:csp10_app/core/widgets/loading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -84,7 +85,7 @@ class _HomePageState extends State<HomePage> {
                 return Text("${snapshot.error}");
               }
               return const Center(
-                child: CircularProgressIndicator.adaptive(),
+                child: LoadingScreen(),
               );
             },
           )

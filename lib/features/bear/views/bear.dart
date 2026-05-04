@@ -1,4 +1,5 @@
 import 'package:csp10_app/core/repositories/user_repository.dart';
+import 'package:csp10_app/core/widgets/loading_screen.dart';
 import 'package:csp10_app/features/bear/bear_repository.dart';
 import 'package:csp10_app/features/bear/bloc/bear_bloc.dart';
 import 'package:csp10_app/core/widgets/page_constraint.dart';
@@ -122,7 +123,7 @@ class _BearOverviewState extends State<BearOverview> {
               BearOverviewStatus.failure =>
                 Text(state.overviewError ?? 'Could not load bear overview.'),
               _ => const Center(
-                  child: CircularProgressIndicator.adaptive(),
+                  child: LoadingScreen(),
                 ),
             };
           },
@@ -185,7 +186,7 @@ class _MyBearsState extends State<MyBears> {
                     BearTransactionsStatus.failure =>
                       Text(state.transactionsError ?? 'Could not load transactions.'),
                     _ => const Center(
-                        child: CircularProgressIndicator.adaptive(),
+                        child: LoadingScreen(),
                       ),
                   };
                 },
@@ -248,7 +249,7 @@ class _AllBearsState extends State<AllBears> {
                     BearTransactionsStatus.failure =>
                       Text(state.transactionsError ?? 'Could not load transactions.'),
                     _ => const Center(
-                        child: CircularProgressIndicator.adaptive(),
+                        child: LoadingScreen(),
                       ),
                   };
                 },
