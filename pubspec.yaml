@@ -39,7 +39,7 @@ dependencies:
   another_flushbar: ^1.12.30
   http: ^1.2.2
   webview_flutter: ^4.10.0
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.2.0
   get_it: ^9.0.5
   flutter_bloc: ^9.1.1
   bloc: ^9.0.1
